@@ -35,11 +35,10 @@ namespace StreamsFiles
             libVLC = new LibVLC("--no-xlib");
             mediaPlayer = new MediaPlayer(libVLC);
             videoView.MediaPlayer = mediaPlayer;
-            volumeSlider.Value = 0;
-            timeSlider.Value = 0;
+            volumeSlider.Value = mediaPlayer.Volume;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void Fullscreen(object sender, RoutedEventArgs e)
         {
             if (!isFullscreen)
             {
@@ -66,12 +65,19 @@ namespace StreamsFiles
                 // Restaurez les valeurs d'origine de RowSpan et ColumnSpan
                 Grid.SetColumnSpan(videoView, originalColumnSpan);
                 Grid.SetRowSpan(videoView, originalRowSpan);
+                
             }
         }
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
             // Code pour démarrer la lecture de la vidéo
-            mediaPlayer.Play(new Media(libVLC, new Uri("http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")));
+            Media media = new Media(libVLC, new Uri("C:\\Users\\Admin Stagiaire\\source\\repos\\Bamc-dev\\StreamsFiles\\sample_1280x720_surfing_with_audio.mkv"));
+            media.Parse();
+            mediaPlayer.Play(media);
+            timeSlider.Value = 0;
+            timeSlider.Minimum = 0;
+            timeSlider.Maximum = mediaPlayer.Length * 1000;
+            currentTime.Text = ""+media.Duration;
 
         }
 
@@ -110,7 +116,7 @@ namespace StreamsFiles
         {
             // Réglez la position de la vidéo en fonction de la valeur du Slider
             
-            mediaPlayer.Time = (long)timeSlider.Value;
+            mediaPlayer.Time = (long)timeSlider.Value*1000;
         }
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
@@ -120,7 +126,7 @@ namespace StreamsFiles
                 if (isFullscreen)
                 {
                     // Désactivez le mode plein écran
-                    Button_Click(null, null);
+                    Fullscreen(null, null);
                 }
             }
         }
