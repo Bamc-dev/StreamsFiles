@@ -1,0 +1,44 @@
+﻿<Window x:Class="StreamsFiles.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
+        xmlns:local="clr-namespace:StreamsFiles"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800"
+        KeyDown="MainWindow_KeyDown">
+    <Grid x:Name="videoGrid" Grid.Row="0" Grid.Column="0">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="20" />
+            <RowDefinition Height="100" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="500" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+            
+        </Grid.ColumnDefinitions>
+        <vlc:VideoView x:Name="videoView" Grid.Column="0" Grid.Row="0">
+
+        </vlc:VideoView>
+        <UniformGrid Grid.Row="2"
+                 Rows="1"
+                 Columns="6"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center">
+
+            <Button Content="Play" Click="PlayButton_Click" />
+            <Button Content="Pause" Click="PauseButton_Click" />
+            <Button Content="Avancer 5s" Click="SeekForwardButton_Click" />
+            <Button Content="Arrêt" Click="StopButton_Click" />
+            <Slider x:Name="volumeSlider" Minimum="0" Maximum="100" Value="0" ValueChanged="VolumeSlider_ValueChanged" />
+            <Slider x:Name="timeSlider" Minimum="0" Maximum="1" Value="0" Width="300" HorizontalAlignment="Center" VerticalAlignment="Center" TickFrequency="1" ValueChanged="TimeSlider_ValueChanged" />
+            <TextBlock x:Name="currentTimeTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
+            <TextBlock x:Name="totalTimeTextBlock" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+        </UniformGrid>
+    </Grid>
+    
+    
+</Window>
