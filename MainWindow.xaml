@@ -24,8 +24,12 @@
 
         </vlc:VideoView>
 		<Button Grid.Column="2" Grid.Row="2" Click="Fullscreen"></Button>
-		<Slider Grid.Row="1" x:Name="timeSlider"/>
-		<TextBlock x:Name="currentTime" Grid.Row="1" Grid.Column="1"></TextBlock>
+        <Slider Grid.Row="1" x:Name="timeSlider" TickPlacement="Both" TickFrequency="10" Cursor="AppStarting" ValueChanged="timeSlider_ValueChanged">
+            <Slider.Style>
+                <Style/>
+            </Slider.Style>
+        </Slider>
+        <TextBlock x:Name="currentTime" Grid.Row="1" Grid.Column="1"></TextBlock>
         <UniformGrid Grid.Row="2"
                  Rows="1"
                  Columns="6"
@@ -33,13 +37,32 @@
                  VerticalAlignment="Center">
 
             <Button Content="Play" Click="PlayButton_Click" />
-            <Button Content="Pause" Click="PauseButton_Click" />
             <Button Content="Avancer 5s" Click="SeekForwardButton_Click" />
             <Button Content="Arrêt" Click="StopButton_Click" />
-            <Slider x:Name="volumeSlider" Minimum="0" Maximum="100" Value="0" ValueChanged="VolumeSlider_ValueChanged" />
+            <Button Content="Open File" Click="OpenFile_Button" />
+            <Button Content="Settings" Click="OpenSettingsButton_Click" />
+            <Slider x:Name="volumeSlider" Minimum="0" Maximum="100" Value="0" ValueChanged="VolumeSlider_ValueChanged" Orientation="Vertical" Height="74" />
             <TextBlock x:Name="currentTimeTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
             <TextBlock x:Name="totalTimeTextBlock" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
         </UniformGrid>
+        <GroupBox Grid.Column="1" Header="Sous titre">
+            <ListBox Grid.Column="1" ItemsSource="{Binding subtitleTracks}" x:Name="subtitlesListBox" SelectionChanged="subtitlesListBox_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:TrackInformation}">
+                        <TextBlock Text="{Binding language}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
+        <GroupBox Grid.Column="2" Header="Audio">
+            <ListBox Grid.Column="2" ItemsSource="{Binding audioTracks}" x:Name="audioListBox" SelectionChanged="audioListBox_SelectionChanged">
+                <ListBox.ItemTemplate>
+                    <DataTemplate DataType="{x:Type local:TrackInformation}">
+                        <TextBlock Text="{Binding language}" />
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </GroupBox>
     </Grid>
     
     
