@@ -23,6 +23,10 @@ using System.Windows.Threading;
 using System.Xml.Linq;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 using Settings = StreamsFiles.Settings;
+using System.Net.Http;
+using Path = System.IO.Path;
+using System.Diagnostics;
+using System.IO.Pipes;
 
 namespace StreamsFiles
 {
@@ -38,6 +42,8 @@ namespace StreamsFiles
         private List<TrackInformation> subtitleTracks;
         private List<TrackInformation> audioTracks;
         private AppSetting settings;
+
+
 
         private bool isSubtitlesLoaded = false;
         private bool isFullscreen = false;
@@ -61,7 +67,7 @@ namespace StreamsFiles
             audioTracks = new List<TrackInformation>();
 
         }
-
+        #region CONTROLS
         private void Fullscreen(object sender, RoutedEventArgs e)
         {
             if (!isFullscreen)
@@ -183,13 +189,9 @@ namespace StreamsFiles
                 // Traitez les fichiers sélectionnés ici
                 foreach (string fichier in fichiersSelectionnes)
                 {
-                    media = new Media(libVLC, new Uri(fichier));
+                   UploadFileInChunks(fichier);
                 }
-                media.Parse();
-                while (!media.IsParsed)
-                {
-                    currentTime.Text = "Waiting info...";
-                }
+ 
             }
 
 
@@ -280,6 +282,101 @@ namespace StreamsFiles
             if (!mediaPlayer.IsPlaying)
                 mediaPlayer.Time = (long)timeSlider.Value;
         }
+        #endregion
+        #region APICALLS
+        private async Task UploadFileInChunks(string filePath)
+        {
+            const int chunkSize = 1024 * 1024; // Taille de chaque chunk (1 Mo dans cet exemple)
+            byte[] buffer = new byte[chunkSize];
+            int bytesRead;
+            string fileId = AppSetting.RandomString();
+
+
+            using (FileStream fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                int chunkNumber = 0;
+                List<Task> chunkSendingTasks = new List<Task>();
+                while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    // Créez un objet FileChunk pour le chunk actuel
+                    FileChunk fileChunk = new FileChunk
+                    {
+                        FileId = fileId,
+                        ChunkNumber = chunkNumber,
+                        Data = new byte[bytesRead]
+                    };
+
+                    // Copiez les données du chunk dans l'objet FileChunk
+                    Array.Copy(buffer, fileChunk.Data, bytesRead);
+
+                    // Envoyez le chunk au serveur
+                    chunkSendingTasks.Add(SendChunkToApi(fileChunk));
+
+                    chunkNumber++;
+                }
+                await Task.WhenAll(chunkSendingTasks);
+                await UploadFileFinished(fileId, filePath.Substring(filePath.LastIndexOf('.') + 1));
+
+            }
+
+        }
+
+        private async Task UploadFileFinished(string fileId, string fileExtension)
+        {
+            // Créez un objet HttpClient
+            using (HttpClient httpClient = new HttpClient())
+            {
+                // Construisez l'URL complète avec les valeurs de fileId et extension
+                string fullUrl = settings.ApiUrl+ settings.UploadEndpointSaveFile+"/"+ fileId + "/" + fileExtension;
+
+                // Effectuez la requête POST
+                HttpResponseMessage response = await httpClient.PostAsync(fullUrl, null);
+
+                // Traitez la réponse
+                if (response.IsSuccessStatusCode)
+                {
+                    // La requête a réussi
+                    string responseBody = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine("Réponse du serveur : " + responseBody);
+                }
+                else
+                {
+                    // La requête a échoué
+                    Console.WriteLine("Erreur de la requête : " + response.StatusCode);
+                }
+            }
+        }
+        
+        private async Task SendChunkToApi(FileChunk fileChunk)
+    
+        {
+            using (HttpClient httpClient = new HttpClient())
+            {
+
+                // Sérialisation de l'objet FileChunk en JSON
+                string jsonContent = JsonConvert.SerializeObject(fileChunk);
+
+                // Créer un objet StringContent pour le contenu JSON
+                StringContent stringContent = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                // Effectuer la requête POST vers l'API
+                HttpResponseMessage response = await httpClient.PostAsync(settings.ApiUrl+settings.UploadEndpointChunk, stringContent);
+
+                // Traiter la réponse ici
+                if (response.IsSuccessStatusCode)
+                {
+                    // Le chunk a été envoyé avec succès
+                    Console.WriteLine($"Chunk {fileChunk.ChunkNumber} envoyé avec succès.");
+                }
+                else
+                {
+                    // Gérer les erreurs ici
+                    Console.WriteLine($"Erreur lors de l'envoi du chunk {fileChunk.ChunkNumber}. Code de statut : {response.StatusCode}");
+                }
+            }
+        }
+        #endregion
+        #region CONFIGS
         private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
         {
             Settings settingsDialog = new Settings(settings.WebSocketUrl, settings.ApiUrl);
@@ -340,5 +437,14 @@ namespace StreamsFiles
                 MessageBox.Show("Erreur lors de la sauvegarde des parametres");
             }
         }
+        #endregion
     }
+    /*             
+     *             For loading files
+     *             
+     *             media.Parse();
+                while (!media.IsParsed)
+                {
+                    currentTime.Text = "Waiting info...";
+                }*/
 }
