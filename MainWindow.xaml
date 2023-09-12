@@ -8,7 +8,7 @@
         xmlns:entity="clr-namespace:StreamsFiles.Entity"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
-        KeyDown="MainWindow_KeyDown">
+        KeyDown="MainWindow_KeyDown" Closing="Window_Closing">
     <Grid x:Name="videoGrid" Grid.Row="0" Grid.Column="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
@@ -65,7 +65,6 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </GroupBox>
-        <Button Content="Connect" Click="ConnectButton_Click" Grid.Column="1" Grid.Row="2"/>
     </Grid>
     
     

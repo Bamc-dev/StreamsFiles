@@ -11,7 +11,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using WebSocketSharp;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 
 namespace StreamsFiles
@@ -28,7 +27,7 @@ namespace StreamsFiles
         private List<TrackInformation> subtitleTracks;
         private List<TrackInformation> audioTracks;
         private AppSetting settings;
-        private StompWebSocketClient wsClient;
+        private WebSocketClient wsClient;
 
 
 
@@ -52,6 +51,13 @@ namespace StreamsFiles
             mediaPlayer.Playing += MediaPlayer_LoadTracks;
             subtitleTracks = new List<TrackInformation>();
             audioTracks = new List<TrackInformation>();
+            if(!string.IsNullOrWhiteSpace(settings.WebSocketUrl))
+            {
+                this.wsClient = new WebSocketClient(settings.WebSocketUrl);
+                this.wsClient.Connect();
+
+
+            }
 
 
         }
@@ -95,7 +101,6 @@ namespace StreamsFiles
                 {
                     _timer.Stop();
                     mediaPlayer.Pause();
-                    this.wsClient.SendStompMessage("SEND\ndestination:/media/play\n\n{\"playedSent\": true}");
                 }
                 else
                 {
@@ -293,6 +298,10 @@ namespace StreamsFiles
             {
                 settings.WebSocketUrl = settingsDialog.websocketUrlSetting;
                 settings.ApiUrl = settingsDialog.apiUrlSetting;
+                if (!string.IsNullOrWhiteSpace(settings.WebSocketUrl))
+                {
+                    this.wsClient = new WebSocketClient(settings.WebSocketUrl);
+                }
                 SaveConfiguration();
             }
         }
@@ -341,17 +350,12 @@ namespace StreamsFiles
             }
         }
 
-        private async Task ConnectToWebsocket()
-        {
 
-        }
         #endregion
 
-        private void ConnectButton_Click(object sender, RoutedEventArgs e)
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            this.wsClient = new StompWebSocketClient(settings.WebSocketUrl);
-            this.wsClient.Connect();
-            this.wsClient.Subscribe("/media/play");
+            this.wsClient.Disconnect();
         }
     }
     /*             
