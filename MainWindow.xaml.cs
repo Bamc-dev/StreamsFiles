@@ -286,7 +286,7 @@ namespace StreamsFiles
         #region APICALLS
         private async Task UploadFileInChunks(string filePath)
         {
-            const int chunkSize = 1024 * 1024; // Taille de chaque chunk (1 Mo dans cet exemple)
+            const int chunkSize = 50 * 1024 * 1024; // Taille de chaque chunk (1 Mo dans cet exemple)
             byte[] buffer = new byte[chunkSize];
             int bytesRead;
             string fileId = AppSetting.RandomString();
