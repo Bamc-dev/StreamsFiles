@@ -44,5 +44,10 @@ namespace StreamsFiles
             Window.GetWindow(this).DialogResult = false;
             Window.GetWindow(this).Close();
         }
+
+        private void ConnectButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }

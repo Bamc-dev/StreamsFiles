@@ -6,15 +6,16 @@
              xmlns:local="clr-namespace:StreamsFiles"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="Black">
         <Grid>
-            <Label Content="Url Websocket :" VerticalAlignment="Top" Margin="0"/>
+            <Label Content="Url Websocket :" VerticalAlignment="Top" Margin="0" Foreground="White"/>
             <TextBox x:Name="websocketUrl" VerticalAlignment="Top" Margin="10,25,10,0"/>
             <Button Content="Enregistrer" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,60,10,0" Click="SaveButton_Click"/>
-            <Label Content="Url Api :" VerticalAlignment="Top" Margin="0,40,0,0"/>
+            <Label Content="Url Api :" VerticalAlignment="Top" Margin="0,40,0,0" Foreground="White"/>
             <TextBox x:Name="apiUrl" VerticalAlignment="Top" Margin="10,65,10,0"/>
             <Button Content="Enregistrer" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,90,10,0" Click="SaveButton_Click"/>
-            <Button Content="Annuler" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,90,80,0" Click="CancelButton_Click"/>
+            <Button Content="Connect" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,90,94,0" Click="ConnectButton_Click"/>
+            <Button Content="Annuler" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,90,182,0" Click="CancelButton_Click"/>
         </Grid>
     </Grid>
 </UserControl>

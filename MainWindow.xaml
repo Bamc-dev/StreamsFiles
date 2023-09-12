@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vlc="clr-namespace:LibVLCSharp.WPF;assembly=LibVLCSharp.WPF"
         xmlns:local="clr-namespace:StreamsFiles"
+        xmlns:entity="clr-namespace:StreamsFiles.Entity"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800"
         KeyDown="MainWindow_KeyDown">
@@ -44,11 +45,12 @@
             <Slider x:Name="volumeSlider" Minimum="0" Maximum="100" Value="0" ValueChanged="VolumeSlider_ValueChanged" Orientation="Vertical" Height="74" />
             <TextBlock x:Name="currentTimeTextBlock" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0" />
             <TextBlock x:Name="totalTimeTextBlock" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,10,0" />
+            
         </UniformGrid>
         <GroupBox Grid.Column="1" Header="Sous titre">
             <ListBox Grid.Column="1" ItemsSource="{Binding subtitleTracks}" x:Name="subtitlesListBox" SelectionChanged="subtitlesListBox_SelectionChanged">
                 <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type local:TrackInformation}">
+                    <DataTemplate DataType="{x:Type entity:TrackInformation}">
                         <TextBlock Text="{Binding language}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
@@ -57,12 +59,13 @@
         <GroupBox Grid.Column="2" Header="Audio">
             <ListBox Grid.Column="2" ItemsSource="{Binding audioTracks}" x:Name="audioListBox" SelectionChanged="audioListBox_SelectionChanged">
                 <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type local:TrackInformation}">
+                    <DataTemplate DataType="{x:Type entity:TrackInformation}">
                         <TextBlock Text="{Binding language}" />
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
         </GroupBox>
+        <Button Content="Connect" Click="ConnectButton_Click" Grid.Column="1" Grid.Row="2"/>
     </Grid>
     
     

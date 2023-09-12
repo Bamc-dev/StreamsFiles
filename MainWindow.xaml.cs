@@ -1,33 +1,18 @@
 ﻿using LibVLCSharp.Shared;
-using LibVLCSharp.WPF;
 using Microsoft.Win32;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using StreamsFiles.Entity;
+using StreamsFiles.Utils;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using System.Xml.Linq;
+using WebSocketSharp;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
-using Settings = StreamsFiles.Settings;
-using System.Net.Http;
-using Path = System.IO.Path;
-using System.Diagnostics;
-using System.IO.Pipes;
-using System.ComponentModel;
 
 namespace StreamsFiles
 {
@@ -43,6 +28,7 @@ namespace StreamsFiles
         private List<TrackInformation> subtitleTracks;
         private List<TrackInformation> audioTracks;
         private AppSetting settings;
+        private StompWebSocketClient wsClient;
 
 
 
@@ -66,6 +52,7 @@ namespace StreamsFiles
             mediaPlayer.Playing += MediaPlayer_LoadTracks;
             subtitleTracks = new List<TrackInformation>();
             audioTracks = new List<TrackInformation>();
+
 
         }
         #region CONTROLS
@@ -108,6 +95,7 @@ namespace StreamsFiles
                 {
                     _timer.Stop();
                     mediaPlayer.Pause();
+                    this.wsClient.SendStompMessage("SEND\ndestination:/media/play\n\n{\"playedSent\": true}");
                 }
                 else
                 {
@@ -305,8 +293,6 @@ namespace StreamsFiles
             {
                 settings.WebSocketUrl = settingsDialog.websocketUrlSetting;
                 settings.ApiUrl = settingsDialog.apiUrlSetting;
-
-                // Sauvegardez les paramètres mis à jour dans le fichier appsettings.json
                 SaveConfiguration();
             }
         }
@@ -354,7 +340,19 @@ namespace StreamsFiles
                 MessageBox.Show("Erreur lors de la sauvegarde des parametres");
             }
         }
+
+        private async Task ConnectToWebsocket()
+        {
+
+        }
         #endregion
+
+        private void ConnectButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.wsClient = new StompWebSocketClient(settings.WebSocketUrl);
+            this.wsClient.Connect();
+            this.wsClient.Subscribe("/media/play");
+        }
     }
     /*             
      *             For loading files
