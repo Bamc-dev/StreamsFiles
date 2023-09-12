@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace StreamsFiles
 {
-    internal class AppSetting
+    public class AppSetting
     {
         public string WebSocketUrl { get; set; }
         public string ApiUrl { get; set; }
@@ -21,7 +21,7 @@ namespace StreamsFiles
         }
         public static string RandomString()
         {
-            int randomStringInt = 10;
+            int randomStringInt = 8;
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, randomStringInt)
                 .Select(s => s[random.Next(s.Length)]).ToArray());
