@@ -5,12 +5,14 @@ using StreamsFiles.Entity;
 using StreamsFiles.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using File = System.IO.File;
 using MediaPlayer = LibVLCSharp.Shared.MediaPlayer;
 
 namespace StreamsFiles
@@ -55,12 +57,13 @@ namespace StreamsFiles
             {
                 this.wsClient = new WebSocketClient(settings.WebSocketUrl);
                 this.wsClient.Connect();
-                this.wsClient.MessageReceived += WsClient_MessageReceived;
+                this.wsClient.MessagePlay += WsClient_MessagePlayReceived;
+                this.wsClient.MessagePause += WsClient_MessagePauseReceived;
+                this.wsClient.MessageUrl += WsClient_MessageUrl;
+                this.wsClient.MessageTime += WsClient_MessageTime;
 
 
             }
-
-
         }
         #region CONTROLS
         private void Fullscreen(object sender, RoutedEventArgs e)
@@ -95,27 +98,18 @@ namespace StreamsFiles
         }
         private void PlayButton_Click(object sender, RoutedEventArgs e)
         {
+            
             // Code pour démarrer la lecture de la vidéo
-            if (mediaPlayer.Media != null)
-            {
+
                 if (mediaPlayer.IsPlaying)
                 {
-                    _timer.Stop();
-                    mediaPlayer.Pause();
+                    wsClient.SendMessage("pause");
+                   
                 }
                 else
                 {
-                    _timer.Start();
-                    mediaPlayer.Pause();
+                    wsClient.SendMessage("play");
                 }
-            }
-            else
-            {
-                _timer.Start();
-                mediaPlayer.Play(media);
-            }
-
-
         }
         private void SeekForwardButton_Click(object sender, RoutedEventArgs e)
         {
@@ -146,12 +140,6 @@ namespace StreamsFiles
         {
             // Réglez le volume du lecteur vidéo en fonction de la valeur du Slider
             mediaPlayer.Volume = (int)volumeSlider.Value;
-        }
-        private void TimeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
-        {
-            // Réglez la position de la vidéo en fonction de la valeur du Slider
-
-            mediaPlayer.Time = (long)timeSlider.Value * 1000;
         }
         private void MainWindow_KeyDown(object sender, KeyEventArgs e)
         {
@@ -274,18 +262,10 @@ namespace StreamsFiles
             }
 
         }
-        private void timeSlider_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
+        private void timeSlider_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            if (!mediaPlayer.IsPlaying)
-                mediaPlayer.Time = (long)timeSlider.Value;
+            wsClient.SendMessage("time:" + (long)timeSlider.Value * 1000);
         }
-        #endregion
-        #region APICALLS
-        
-
-        
-        
-        
         #endregion
         #region CONFIGS
         private void OpenSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -353,14 +333,61 @@ namespace StreamsFiles
 
 
         #endregion
-
+        #region WEBSOCKET
+        private void WsClient_MessagePlayReceived(object sender, string obj)
+        {
+            if(mediaPlayer.Media != null)
+            {
+                mediaPlayer.Play();
+                _timer.Stop();
+            }
+            else
+            {
+                mediaPlayer.Play(media);
+                _timer.Start();
+            }
+        }
+        private void WsClient_MessagePauseReceived(object sender, string obj)
+        {
+            if(mediaPlayer.Media != null)
+            {
+                mediaPlayer.Pause();
+            }
+        }
+        private void WsClient_MessageTime(object sender, string obj)
+        {
+            if (mediaPlayer.Media != null)
+            {
+                mediaPlayer.Time = long.Parse(obj.Split(':')[1]);
+            }
+        }
+        private void WsClient_MessageUrl(object sender, string obj)
+        {
+            media = new Media(libVLC, obj.Substring(4), FromType.FromLocation);
+            Debug.WriteLine(obj.Substring(4));
+            media.Parse();
+        }
+        #endregion
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            this.wsClient.Disconnect();
+            this.wsClient.Disconnect().Wait();
         }
-        private void WsClient_MessageReceived(string obj)
+
+        private void btn_OpenFile_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show(obj);
+
+            SelectFiles selectFiles = new SelectFiles(settings.ApiUrl);
+            Window window = new Window();
+            window.Width = 500;
+            window.Height = 400;
+            window.Content = selectFiles;
+            bool? result = window.ShowDialog();
+            // Si l'utilisateur a enregistré les modifications, mettez à jour les paramètres de configuration
+            if (result == true)
+            {
+                wsClient.SendMessage("url:"+settings.ApiUrl+selectFiles.SelectedFile.downloadUri);           
+            }
+
         }
     }
     /*             

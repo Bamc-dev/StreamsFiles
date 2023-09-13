@@ -10,6 +10,12 @@ public class WebSocketClient
 {
     private WebSocket webSocket;
     private string receivedMessage;
+    public delegate void MessageReceivedEventHandler(object sender, string message);
+    public event MessageReceivedEventHandler MessagePlay;
+    public event MessageReceivedEventHandler MessagePause;
+    public event MessageReceivedEventHandler MessageUrl;
+    public event MessageReceivedEventHandler MessageTime;
+
 
     public event Action<string> MessageReceived;
 
@@ -24,18 +30,29 @@ public class WebSocketClient
         webSocket.Open();
     }
 
-    public void Disconnect()
+    public void SendMessage(string message)
+    {
+        webSocket.Send(message);
+    }
+
+    public async Task Disconnect()
     {
         webSocket.Close();
     }
 
     private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        receivedMessage = "Message Received: " + e.Message;
-
-        // Déclenchez l'événement MessageReceived
-        MessageReceived?.Invoke(receivedMessage);
+        receivedMessage = e.Message;
+        if(receivedMessage.Contains("time:"))
+            MessageTime?.Invoke(this,receivedMessage);
+        else if (receivedMessage.Contains("url:"))
+            MessageUrl?.Invoke(this, receivedMessage);
+        else if (receivedMessage.Equals("play"))
+            MessagePlay?.Invoke(this, receivedMessage);
+        else if (receivedMessage.Equals("pause"))
+            MessagePause?.Invoke(this, receivedMessage);
     }
+    
 }
 
     

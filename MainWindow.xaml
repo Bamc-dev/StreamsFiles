@@ -25,7 +25,7 @@
 
         </vlc:VideoView>
 		<Button Grid.Column="2" Grid.Row="2" Click="Fullscreen"></Button>
-        <Slider Grid.Row="1" x:Name="timeSlider" TickPlacement="Both" TickFrequency="10" Cursor="AppStarting" ValueChanged="timeSlider_ValueChanged">
+        <Slider Grid.Row="1" x:Name="timeSlider" TickPlacement="Both" TickFrequency="10" Cursor="AppStarting" MouseUp="timeSlider_MouseUp">
             <Slider.Style>
                 <Style/>
             </Slider.Style>
@@ -65,6 +65,7 @@
                 </ListBox.ItemTemplate>
             </ListBox>
         </GroupBox>
+        <Button Grid.Row="2" Grid.Column="1" x:Name="btn_OpenFile" Click="btn_OpenFile_Click">Select File</Button>
     </Grid>
     
     
