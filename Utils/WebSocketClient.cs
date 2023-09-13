@@ -9,12 +9,13 @@ using WebSocket4Net;
 public class WebSocketClient
 {
     private WebSocket webSocket;
+    private string receivedMessage;
+
+    public event Action<string> MessageReceived;
 
     public WebSocketClient(string serverUri)
     {
         webSocket = new WebSocket(serverUri);
-
-        // Gérez la réception des messages
         webSocket.MessageReceived += WebSocket_MessageReceived;
     }
 
@@ -30,10 +31,12 @@ public class WebSocketClient
 
     private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
     {
-        // Affichez le message dans un MessageBox
-        Application.Current.Dispatcher.Invoke(() =>
-        {
-            MessageBox.Show("Message Received: " + e.Message, "WebSocket Message", MessageBoxButton.OK, MessageBoxImage.Information);
-        });
+        receivedMessage = "Message Received: " + e.Message;
+
+        // Déclenchez l'événement MessageReceived
+        MessageReceived?.Invoke(receivedMessage);
     }
 }
+
+    
+

@@ -55,6 +55,7 @@ namespace StreamsFiles
             {
                 this.wsClient = new WebSocketClient(settings.WebSocketUrl);
                 this.wsClient.Connect();
+                this.wsClient.MessageReceived += WsClient_MessageReceived;
 
 
             }
@@ -356,6 +357,10 @@ namespace StreamsFiles
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             this.wsClient.Disconnect();
+        }
+        private void WsClient_MessageReceived(string obj)
+        {
+            MessageBox.Show(obj);
         }
     }
     /*             
