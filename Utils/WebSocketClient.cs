@@ -15,6 +15,7 @@ public class WebSocketClient
     public event MessageReceivedEventHandler MessagePause;
     public event MessageReceivedEventHandler MessageUrl;
     public event MessageReceivedEventHandler MessageTime;
+    public event MessageReceivedEventHandler MessageStop;
 
 
     public event Action<string> MessageReceived;
@@ -51,6 +52,8 @@ public class WebSocketClient
             MessagePlay?.Invoke(this, receivedMessage);
         else if (receivedMessage.Equals("pause"))
             MessagePause?.Invoke(this, receivedMessage);
+        else if (receivedMessage.Equals("stop"))
+            MessageStop?.Invoke(this, receivedMessage);
     }
     
 }

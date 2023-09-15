@@ -31,8 +31,9 @@ namespace StreamsFiles
             InitializeComponent();
             ApiUrl = apiUrl;
             LoadDataFromApi();
+            fileListBox.Items.Refresh();
         }
-        private async void LoadDataFromApi()
+        private async Task LoadDataFromApi()
         {
             try
             {
@@ -40,13 +41,14 @@ namespace StreamsFiles
                 {
                     // Remplacez l'URL par l'URL réelle de votre API
                     
-                    string response = await client.GetStringAsync(ApiUrl+"/allFiles");
+                    string response = await client.GetStringAsync(ApiUrl + "/allFiles");
 
                     // Désérialisez les données JSON en liste de personnes
                     Files = Newtonsoft.Json.JsonConvert.DeserializeObject<List<File>>(response);
 
                     // Définissez le contexte de données de la fenêtre sur la liste de personnes
                     DataContext = this;
+
                 }
             }
             catch (Exception ex)

@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using static System.Net.WebRequestMethods;
 
 namespace StreamsFiles.Utils
@@ -20,6 +21,7 @@ namespace StreamsFiles.Utils
         public string FilePath { get; set; }
         public AppSetting settings { get; set; }
         private string fileId;
+        private TaskCompletionSource<bool> completionSource = new TaskCompletionSource<bool>();
         public BackgroundWorkerUtils(string filePath, AppSetting appSetting)
         {
             Bg = new BackgroundWorker();
@@ -35,7 +37,7 @@ namespace StreamsFiles.Utils
 
         private async void DoWork(object sender, DoWorkEventArgs e)
         {
-            const int chunkSize = 50 * 1024 * 1024; // Taille de chaque chunk (1 Mo dans cet exemple)
+            const int chunkSize = 2*1024*1024;
             byte[] buffer = new byte[chunkSize];
             int bytesRead;
 
@@ -60,20 +62,25 @@ namespace StreamsFiles.Utils
 
                     // Envoyez le chunk au serveur
                     chunkSendingTasks.Add(SendChunkToApi(fileChunk));
-
+                    if (chunkNumber % 10 == 0 || buffer.Length < bytesRead)
+                    {
+                        await Task.WhenAll(chunkSendingTasks);
+                        chunkSendingTasks.Clear();
+                    }
                     chunkNumber++;
                 }
-                await Task.WhenAll(chunkSendingTasks);
-
+                completionSource.TrySetResult(true);
             }
+
         }
         protected void ProgressChanged(object? sender, ProgressChangedEventArgs e)
         {
 
         }
-        protected void Completed(object? sender, EventArgs e)
+        protected async void Completed(object? sender, EventArgs e)
         {
-            Thread.Sleep(5000);
+            await completionSource.Task;
+            Thread.Sleep(2000);
             UploadFileFinished(fileId, FilePath.Substring(FilePath.LastIndexOf('.') + 1));
 
         }
@@ -91,22 +98,16 @@ namespace StreamsFiles.Utils
 
                 // Effectuer la requête POST vers l'API
                 HttpResponseMessage response = await httpClient.PostAsync(settings.ApiUrl + settings.UploadEndpointChunk, stringContent);
-
                 // Traiter la réponse ici
                 if (response.IsSuccessStatusCode)
                 {
-                    // Le chunk a été envoyé avec succès
-                    Console.WriteLine($"Chunk {fileChunk.ChunkNumber} envoyé avec succès.");
-                }
-                else
-                {
-                    // Gérer les erreurs ici
-                    Console.WriteLine($"Erreur lors de l'envoi du chunk {fileChunk.ChunkNumber}. Code de statut : {response.StatusCode}");
+                    Debug.WriteLine("Chunk : " + fileChunk.ChunkNumber + "Received by Server");
                 }
             }
         }
         private async Task UploadFileFinished(string fileId, string fileExtension)
         {
+            Debug.WriteLine("This method called");
             // Créez un objet HttpClient
             using (HttpClient httpClient = new HttpClient())
             {
