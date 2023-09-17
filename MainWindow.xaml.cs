@@ -60,6 +60,7 @@ namespace StreamsFiles
             timeSlider.PreviewMouseRightButtonDown += TimeSlider_PreviewMouseRightButtonDown;
             timeSlider.PreviewMouseRightButtonUp+= TimeSlider_PreviewMouseRightButtonUp;
             mediaPlayer.Paused += MediaPlayer_Paused;
+            
             if (!string.IsNullOrWhiteSpace(settings.WebSocketUrl))
             {
                 this.wsClient = new WebSocketClient(settings.WebSocketUrl);
@@ -72,7 +73,6 @@ namespace StreamsFiles
 
 
             }
-            monitorThread = new Thread(MonitorWillPlay);
         }
 
         private void MediaPlayer_Paused(object? sender, EventArgs e)
@@ -176,13 +176,17 @@ namespace StreamsFiles
                 // Traitez les fichiers sélectionnés ici
                 foreach (string fichier in fichiersSelectionnes)
                 {
-                    BackgroundWorkerUtils bg = new BackgroundWorkerUtils(fichier, settings);
+                    BackgroundWorkerUtils bg = new BackgroundWorkerUtils(fichier, settings, this);
                     bg.Bg.RunWorkerAsync();
                 }
  
             }
 
 
+        }
+        public void UpdateProgressBar(int i)
+        {
+            progressBar_UploadStatus.Value = i;
         }
         private void Timer_Tick(object sender, EventArgs e)
         {
@@ -408,34 +412,21 @@ namespace StreamsFiles
         private void WsClient_MessageUrl(object sender, string obj)
         {
             media = new Media(libVLC, obj.Substring(4), FromType.FromLocation);
-            monitorThread.Start();
+            media.Parse();
+            while(!media.IsParsed) {
+                Debug.WriteLine(media.IsParsed);
+
+            }
+            Dispatcher.Invoke(() =>
+            {
+                currentTime.Text = "" + media.Duration;
+            });
         }
         private void WsClient_MessageStop(object sender, string obj)
         {
             mediaPlayer.Stop();
             mediaPlayer.Media = null;
-        }
-
-        private void MonitorWillPlay()
-        {
-            while (mediaPlayer.WillPlay)
-            {
-                // Mettez à jour l'interface utilisateur depuis le thread de l'interface utilisateur
-                Dispatcher.Invoke(() =>
-                {
-                    if (mediaPlayer.WillPlay)
-                    {
-                        txt_MediaStatus.Text = "Can Play";
-                        txt_MediaStatus.Foreground = Brushes.Green;
-                    }
-                    else
-                    {
-                        txt_MediaStatus.Text = "Waiting";
-                        txt_MediaStatus.Foreground = Brushes.Red;
-
-                    }
-                });
-            }
+            
         }
         #endregion
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)

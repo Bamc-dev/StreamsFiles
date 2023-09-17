@@ -18,12 +18,18 @@ namespace StreamsFiles.Utils
     public class BackgroundWorkerUtils
     {
         public BackgroundWorker Bg { get; set; }
+        private static int instances = 0;
+        private static int chunksNumberTotal = 0;
+        private static int chunksNumberUploaded;
+
         public string FilePath { get; set; }
         public AppSetting settings { get; set; }
         private string fileId;
         private TaskCompletionSource<bool> completionSource = new TaskCompletionSource<bool>();
-        public BackgroundWorkerUtils(string filePath, AppSetting appSetting)
+        private MainWindow mainWindow;
+        public BackgroundWorkerUtils(string filePath, AppSetting appSetting, MainWindow mainWindow)
         {
+            this.mainWindow = mainWindow;
             Bg = new BackgroundWorker();
             Bg.WorkerReportsProgress = true;
             Bg.DoWork += DoWork;
@@ -32,7 +38,11 @@ namespace StreamsFiles.Utils
             FilePath = filePath;
             settings = appSetting;
             fileId = AppSetting.RandomString() + "-" + Path.GetFileName(filePath).Split('.')[0];
-
+            instances++;
+        }
+        ~BackgroundWorkerUtils()
+        {
+            instances--;
         }
 
         private async void DoWork(object sender, DoWorkEventArgs e)
@@ -46,6 +56,9 @@ namespace StreamsFiles.Utils
             using (FileStream fileStream = new FileStream(FilePath, FileMode.Open, FileAccess.Read))
             {
                 int chunkNumber = 0;
+                int fileSizeByChunks = (int)(fileStream.Length / chunkSize);
+                chunksNumberTotal += fileSizeByChunks;
+                Debug.WriteLine(chunksNumberTotal);
                 List<Task> chunkSendingTasks = new List<Task>();
                 while ((bytesRead = fileStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
@@ -59,7 +72,6 @@ namespace StreamsFiles.Utils
 
                     // Copiez les données du chunk dans l'objet FileChunk
                     Array.Copy(buffer, fileChunk.Data, bytesRead);
-
                     // Envoyez le chunk au serveur
                     chunkSendingTasks.Add(SendChunkToApi(fileChunk));
                     if (chunkNumber % 10 == 0 || buffer.Length < bytesRead)
@@ -69,6 +81,7 @@ namespace StreamsFiles.Utils
                     }
                     chunkNumber++;
                 }
+
                 completionSource.TrySetResult(true);
             }
 
@@ -101,6 +114,13 @@ namespace StreamsFiles.Utils
                 // Traiter la réponse ici
                 if (response.IsSuccessStatusCode)
                 {
+                    chunksNumberUploaded++;
+                    mainWindow.Dispatcher.Invoke(() =>
+                    {
+                        
+                        Debug.WriteLine(chunksNumberUploaded + " / " + chunksNumberTotal + " : " + CalculerPourcentage(chunksNumberUploaded, chunksNumberTotal));
+                        mainWindow.UpdateProgressBar(CalculerPourcentage(chunksNumberUploaded, chunksNumberTotal));
+                    });
                     Debug.WriteLine("Chunk : " + fileChunk.ChunkNumber + "Received by Server");
                 }
             }
@@ -129,6 +149,31 @@ namespace StreamsFiles.Utils
                     Debug.WriteLine("Erreur de la requête : " + response.StatusCode + " | " + response);
                 }
             }
+        }
+        private int CalculerPourcentage(int dividende, int diviseur)
+        {
+            if (diviseur == 0)
+            {
+                throw new ArgumentException("Le diviseur ne peut pas être zéro.");
+            }
+
+            double resultatDecimal = (double)dividende / diviseur * 100;
+            int resultat = (int)resultatDecimal;
+
+            return resultat;
+        }
+        public static int GetActiveInstances()
+        {
+            return instances;
+        }
+        public static int GetChunksNumberTotal()
+        {
+            return chunksNumberTotal;
+        }
+        public static void DeleteChunksNumber()
+        {
+            chunksNumberTotal = 0;
+            chunksNumberUploaded = 0;
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using StreamsFiles.Entity;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
@@ -64,16 +65,16 @@ namespace StreamsFiles
             Window.GetWindow(this).Close();
         }
 
-        private void Delete_Click(object sender, RoutedEventArgs e)
+        private async void Delete_Click(object sender, RoutedEventArgs e)
         {
             SelectedFile = (File)fileListBox.SelectedItem;
             try
             {
                 using (HttpClient client = new HttpClient())
                 {
-                    // Remplacez l'URL par l'URL réelle de votre API
-
-                    client.DeleteAsync(ApiUrl + "/deleteFile/"+SelectedFile.code);
+                    Debug.WriteLine(ApiUrl + "/deleteFile/" + SelectedFile.code);
+                    
+                    HttpResponseMessage response = await client.DeleteAsync(ApiUrl + "/deleteFile/" + SelectedFile.code);
                 }
             }
             catch (Exception ex)
