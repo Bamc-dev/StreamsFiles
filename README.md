@@ -1,22 +1,25 @@
 # StreamsFilesFront
 
-Projet front, permettant de streamer en simultané, un fichier vidéo (une partie client side afin de pouvoir selectionner les sous titres que l'on veut et l'audio)
+Projet front permettant de streamer en simultané un fichier vidéo (une partie client-side pour pouvoir sélectionner les sous-titres et l'audio souhaités).
 
 ## Default Idea
 
-Projet front, permettant de streamer en simultané, un fichier vidéo
+Projet front permettant de streamer en simultané un fichier vidéo.
 
-- Une partie client side afin de pouvoir selectionner les sous titres que l'on veut et l'audio
-- Selection de sous titres et d'audio, upload de fichier (en chunks pour que le serveur HTTP ne Timeout pas), Fullscreen, Fonctionnalités d'un lecteur video
-- C'était un projet afin de pouvoir regardé du contenu sans perte de qualités avec différentes personnes présentes a distance.
+- Une partie client-side permettant de sélectionner les sous-titres et l'audio souhaités.
+- Sélection de sous-titres et d'audio, upload de fichier (en chunks pour éviter que le serveur HTTP n'expire), mode plein écran, fonctionnalités d'un lecteur vidéo.
+- Il s'agissait d'un projet permettant de regarder du contenu sans perte de qualité avec différentes personnes à distance.
+
+## Demo
+
+[Voir la démo](https://github.com/user-attachments/assets/b0543d28-6f4b-4296-a836-6957c35620c2)
 
 ## How to Setup
 
-Décrivez ici comment configurer le projet pour un nouvel utilisateur. Incluez des instructions détaillées afin que même quelqu'un sans beaucoup d'expérience technique puisse suivre.
-
 ### Prérequis
 
-- [.NET SDK](https://dotnet.microsoft.com/download) Version 8.0 or more
+- [.NET SDK](https://dotnet.microsoft.com/download) version 8.0 ou supérieure.
+- [BackEndRemoteStream](https://github.com/Bamc-dev/RemoteStreaming)
 
 ### Installation
 
@@ -27,5 +30,14 @@ git clone https://github.com/Bamc-dev/StreamsFiles.git
 # Allez dans le répertoire du projet
 cd StreamsFiles
 
-# Build project
+# Construisez le projet
 dotnet build
+```
+
+Ensuite, il faudra aller dans les paramètres et configurer les éléments suivants :
+
+- URL Websocket : ws://{votre-ip-de-serveur}:4532/socket
+- URL API : http://{votre-ip-de-serveur}:4532
+
+## Améliorations
+Il reste beaucoup de corrections à faire. J'avais besoin de quelque chose de fonctionnel à la base, et je n'ai pas repris le projet depuis.
